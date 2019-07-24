@@ -31,11 +31,17 @@ Vagrant.configure("2") do |config|
 
   # I usually disable vbguest auto-update on RHEL boxes because the plugin
   # fires before provisioning is complete, with the box yet to be subscribed
-  # to the relevant channels in Satellite
+  # to the relevant channels in Satellite.  However, if using 'centos/7' you
+  # might want to enable auto_update in order to install the VirtualBox Guest
+  # Additions, and uncomment the synced_folder line in order to mount
+  # '/vagrant' in the box.  Otherwise you'll be rsyncing '.' into '/vagrant'
+  # in the box rather than mounting it.
 
   if Vagrant.has_plugin?('vagrant-vbguest')
     config.vbguest.auto_update = false
   end
+
+  # config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
   # Load Balancer
   config.vm.define "ptlb" do |ptlb|
