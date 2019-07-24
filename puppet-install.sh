@@ -114,9 +114,9 @@ cleanup() {
 check_for_installer() {
     if [ ! -f "$pe_installer" ]; then
         [ -d "$pe_installer_dir" ] || mkdir -p $pe_installer_dir
-        [ "$verbose"] && verb_message "Downloading $pe_installer_file"
+        [ "$verbose" ] && verb_message "Downloading $pe_installer_file"
         downloading=1
-        curl -L --progress-bar $pe_installer_url -o $pe_installer
+        curl -L -s $pe_installer_url -o $pe_installer
         echo
         downloading=
         if [ -e "$pe_installer" ]; then
