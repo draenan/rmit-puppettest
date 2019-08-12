@@ -27,7 +27,7 @@ fi
 
 
 usage() {
-    echo "Usage: $progname [-d] [-v]"
+    echo "Usage: $progname [-h] [-d] [-v]"
 }
 
 
@@ -45,6 +45,11 @@ while getopts :hdv opt; do
     case $opt in
         h)
             usage
+            echo
+            echo "Optional parameters:"
+            echo "    -h                Show this help message and exit"
+            echo "    -d                Debug (set -x)"
+            echo "    -v                Be verbose"
             exit
             ;;
         d)

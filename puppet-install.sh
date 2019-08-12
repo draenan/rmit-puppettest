@@ -33,7 +33,7 @@ progname=${progname_path##*/}
 [ -z "$progname_path" ] && exit 1
 
 usage() {
-    echo "Usage: $progname [-d] [-v] [-V PE_version] [-p] role"
+    echo "Usage: $progname [-h] [-d] [-v] [-V PE_version] [-p] role"
 }
 
 
