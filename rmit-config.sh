@@ -69,15 +69,15 @@ while getopts :hdkvK:r: opt; do
             echo
             echo "Optional parameters:"
             echo "    -h                Show this help message and exit"
-            echo "    -d                Debug (set -x), implies -k, will keep a copy of SSH key"
-            echo "    -k                Keep bootstrap.sh and pe-site.tgz"
+            echo "    -d                Debug (set -x), implies -k"
+            echo "    -k                Keep bootstrap.sh, pe-site.tgz, and the copied SSH key"
             echo "    -v                Be verbose"
             echo "    -K                Path to SSH key (for Git repo access)"
             echo "    -r                Path to clone of Control Repo"
             exit
             ;;
         d)
-            debug="-d"
+            debug=" -x"
             keep_files=1
             ;;
         k)
@@ -163,38 +163,26 @@ cd $cwd
 
 verb_message "Generating 'bootstrap.sh' script"
 
-cat > bootstrap.sh << EOF
-#!/bin/bash
+echo "#!/bin/bash$debug" > bootstrap.sh
+
+cat >> bootstrap.sh << EOF
 PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin
 
 
-# Green verbose messages. Output of tools like "puppet-module" are already
-# noisy, so just assume we'll be using verbose messages.
+# This function will be noop if "-v" was not passed to rmit-config.sh,
+# otherwise it will produce green messages.
 
 verb_message() {
-    [ "\$verbose" ] && echo -e "\\n\\033[1;32m--- \$1\\033[0m"
+EOF
+
+if [ "$verbose" ]; then
+    echo '    echo -e "\n\033[1;32m--- $1\033[0m"' >> bootstrap.sh
+else
+    echo '    :' >> bootstrap.sh
+fi
+
+cat >> bootstrap.sh << EOF
 }
-
-
-# Time to gather command line arguments.
-
-debug= verbose=
-
-while getopts :dv opt; do
-    case \$opt in
-        d)
-            debug="-d"
-            ;;
-        v)
-            verbose="-v"
-            ;;
-    esac
-done
-
-
-# Enable debug tracing if "-d" was specified.
-
-[ "\$debug" ] && set -x
 
 
 # Change directory to the Production environment and extract the site tarball.
@@ -439,14 +427,14 @@ EOF
 
 for master in $masters; do
     verb_message "Running 'bootstrap.sh' on $master"
-    vagrant ssh $master -- sudo /vagrant/bootstrap.sh $verbose $debug
+    vagrant ssh $master -- sudo /vagrant/bootstrap.sh
 done
 
 
 # Clean up.
 
 if [ ! -z "$ssh_key" ]; then
-    if [ -z "$debug" ]; then
+    if [ -z "$keep_files" ]; then
         verb_message "Removing temporary copy of SSH key '${ssh_key##*/}'"
         rm ${ssh_key##*/}
     else
