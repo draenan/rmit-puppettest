@@ -77,14 +77,14 @@ while getopts :hdkvK:r: opt; do
             exit
             ;;
         d)
-            debug=1
+            debug="-d"
             keep_files=1
             ;;
         k)
             keep_files=1
             ;;
         v)
-            verbose=1
+            verbose="-v"
             ;;
         K)
             ssh_key=$OPTARG
@@ -172,8 +172,29 @@ PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin
 # noisy, so just assume we'll be using verbose messages.
 
 verb_message() {
-    echo -e "\\n\\033[1;32m--- \$1\\033[0m"
+    [ "\$verbose" ] && echo -e "\\n\\033[1;32m--- \$1\\033[0m"
 }
+
+
+# Time to gather command line arguments.
+
+debug= verbose=
+
+while getopts :dv opt; do
+    case \$opt in
+        d)
+            debug="-d"
+            ;;
+        v)
+            verbose="-v"
+            ;;
+    esac
+done
+
+
+# Enable debug tracing if "-d" was specified.
+
+[ "\$debug" ] && set -x
 
 
 # Change directory to the Production environment and extract the site tarball.
@@ -418,7 +439,7 @@ EOF
 
 for master in $masters; do
     verb_message "Running 'bootstrap.sh' on $master"
-    vagrant ssh $master -- sudo /vagrant/bootstrap.sh
+    vagrant ssh $master -- sudo /vagrant/bootstrap.sh $verbose $debug
 done
 
 
