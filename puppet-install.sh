@@ -42,7 +42,7 @@ usage() {
 # it stand out.
 
 verb_message() {
-    echo -e "\n\033[1;34m=== $1\033[0m"
+    [ "$verbose" ] && echo -e "\n\033[1;34m=== $1\033[0m"
 }
 
 
@@ -96,10 +96,10 @@ cleanup_installer() {
 # if required.
 
 cleanup() {
-    [ "$verbose" ] && verb_message "Cleaning up"
+    verb_message "Cleaning up"
     [ -d "$tempdir" ] && rm -r $tempdir
     if [ ! -z "$downloading" ]; then
-        [ "$verbose" ] && verb_message "Download of installer interrupted, removing file"
+        verb_message "Download of installer interrupted, removing file"
         cleanup_installer
         exit 130
     fi
@@ -114,7 +114,7 @@ cleanup() {
 check_for_installer() {
     if [ ! -f "$pe_installer" ]; then
         [ -d "$pe_installer_dir" ] || mkdir -p $pe_installer_dir
-        [ "$verbose" ] && verb_message "Downloading $pe_installer_file"
+        verb_message "Downloading $pe_installer_file"
         downloading=1
         curl -L -s $pe_installer_url -o $pe_installer
         echo
@@ -132,7 +132,7 @@ check_for_installer() {
             exit 1
         fi
     else
-        [ "$verbose" ] && verb_message "Installer file $pe_installer_file is present"
+        verb_message "Installer file $pe_installer_file is present"
     fi
 }
 
@@ -176,7 +176,7 @@ run_ssh_command() {
 # only usable from the MoM.
 
 install_jq() {
-    [ "$verbose" ] && verb_message "Installing jq from EPEL"
+    verb_message "Installing jq from EPEL"
     yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     yum install -y jq
 }
@@ -250,23 +250,23 @@ install_mom() {
     # Extract the installer into a temporary directory, and run it using the
     # pe.conf file in the "/vagrant" directory.
 
-    [ "$verbose" ] && verb_message "Installing Puppet Enterprise $version as Master"
+    verb_message "Installing Puppet Enterprise $version as Master"
     tempdir=$(mktemp -d /tmp/pe_${version}_XXXXXX)
-    [ "$verbose" ] && verb_message "Extracting $pe_installer_file to directory $tempdir"
+    verb_message "Extracting $pe_installer_file to directory $tempdir"
     (cd $tempdir && tar xzf $pe_installer --strip 1)
     if [ ! -e ${tempdir}/puppet-enterprise-installer ]; then
         error_message "Failure extracting $pe_installer_file"
         cleanup
         exit 1
     fi
-    [ "$verbose" ] && verb_message "Running ${tempdir}/puppet-enterprise-installer"
+    verb_message "Running ${tempdir}/puppet-enterprise-installer"
     (cd $tempdir && ./puppet-enterprise-installer -c $pe_config_file)
 
 
     # Run the Puppet Agent a couple of times once Puppet is installed to finish
     # off configuration of the MoM.
 
-    [ "$verbose" ] && verb_message "Running Puppet Agent post-install"
+    verb_message "Running Puppet Agent post-install"
     puppet agent -t
     puppet agent -t
 
@@ -296,7 +296,7 @@ install_cm() {
     # Name when creating the node's cert as this Compile Master will be part of
     # a load-balanced pool behind the "pt-master" VIP.
 
-    [ "$verbose" ] && verb_message "Installing Puppet Agent"
+    verb_message "Installing Puppet Agent"
     dns_alt_name="$pt_master"
     curl -sk $pe_cm_agent_installer | bash -s main:dns_alt_names=$dns_alt_name
 
@@ -304,14 +304,14 @@ install_cm() {
     # SSH into the MoM, sign the CM's cert, and configure Puppet for
     # load-balanced Compile Masters.
 
-    [ "$verbose" ] && verb_message "Configuring for load-balanced Compile Masters on $puppetmom"
+    verb_message "Configuring for load-balanced Compile Masters on $puppetmom"
     run_ssh_command $puppetmom "sudo /vagrant/puppet-install.sh $debug $verbose $version_arg -p cm"
 
 
     # Run the Puppet Agent once Puppet is installed to finish off the
     # configuration of the CM if needed.
 
-    [ "$verbose" ] && verb_message "Running Puppet Agent post-install"
+    verb_message "Running Puppet Agent post-install"
     puppet agent -t
 }
 
@@ -355,7 +355,7 @@ post_install_cm() {
     # anyway, so we might as well run the "puppet" command directly given that
     # we are already here.
 
-    [ "$verbose" ] && verb_message "Signing cert for $puppetcm"
+    verb_message "Signing cert for $puppetcm"
     puppet cert --allow-dns-alt-names sign $puppetcm
 
 
@@ -365,11 +365,11 @@ post_install_cm() {
     # the shell individually quoting each word in the string, which breaks
     # attempts to access the API.
 
-    [ "$verbose" ] && verb_message 'Retrieving Group ID for "PE Master" group'
+    verb_message 'Retrieving Group ID for "PE Master" group'
     pm_group_id=$(curl -s $cert_chain $classifier_api/groups | \
         jq -r '.[] | select(.name=="PE Master") | .id')
 
-    [ "$verbose" ] && verb_message "Pinning $puppetcm to \"PE Master\" node group"
+    verb_message "Pinning $puppetcm to \"PE Master\" node group"
     eval curl -s $post $cert_chain $classifier_api/groups/$pm_group_id/pin?nodes=$puppetcm
 
 
@@ -378,10 +378,10 @@ post_install_cm() {
     # Puppet Agent and configure $puppetcm as a Master.  Then we need to run
     # the Agent on the MoM again so the MoM knows about the new Compile Master.
 
-    [ "$verbose" ] && verb_message "Running Puppet on $puppetcm"
+    verb_message "Running Puppet on $puppetcm"
     run_ssh_command $puppetcm "sudo /opt/puppetlabs/bin/puppet agent -t"
 
-    [ "$verbose" ] && verb_message "Running Puppet on $puppetmom"
+    verb_message "Running Puppet on $puppetmom"
     puppet agent -t
 
 
@@ -397,12 +397,12 @@ post_install_cm() {
 
         # The check indicated we haven't done the config yet, so let's do it.
 
-        [ "$verbose" ] && verb_message "Configuring installation for load-balanced Compile Masters"
+        verb_message "Configuring installation for load-balanced Compile Masters"
 
 
         # Get the relevant Group IDs.
 
-        [ "$verbose" ] && verb_message 'Retrieving Group IDs for "PE Infrastructure Agent" and "PE Agent" groups'
+        verb_message 'Retrieving Group IDs for "PE Infrastructure Agent" and "PE Agent" groups'
         pia_group_id=$(curl -s $cert_chain $classifier_api/groups | \
             jq -r '.[] | select(.name=="PE Infrastructure Agent") | .id')
         pa_group_id=$(curl -s $cert_chain $classifier_api/groups | \
@@ -442,15 +442,15 @@ EOT
         # class attached to the "PE Master" group to the load-balanced
         # pt-master name.
 
-        [ "$verbose" ] && verb_message 'Configuring "PE Master" group'
+        verb_message 'Configuring "PE Master" group'
         eval curl -s $post $cert_chain $classifier_api/groups/$pm_group_id -d $pm_cmpa_data >/dev/null
 
         # Run the agent on the Compile Master and the MoM to apply the new setting.
 
-        [ "$verbose" ] && verb_message "Running Puppet on $puppetcm"
+        verb_message "Running Puppet on $puppetcm"
         run_ssh_command $puppetcm "sudo /opt/puppetlabs/bin/puppet agent -t"
 
-        [ "$verbose" ] && verb_message "Running Puppet on $puppetmom"
+        verb_message "Running Puppet on $puppetmom"
         puppet agent -t
 
 
@@ -461,22 +461,22 @@ EOT
         # Interestingly, RMIT's installation doesn't do this despite this step
         # being in the installation docs.  I'm not sure why.
 
-        [ "$verbose" ] && verb_message 'Configuring "PE Infrastructure Agent" group'
+        verb_message 'Configuring "PE Infrastructure Agent" group'
         eval curl -s $post $cert_chain $classifier_api/groups/$pia_group_id -d $pia_pcpb_data >/dev/null
 
-        [ "$verbose" ] && verb_message "Running Puppet on $puppetcm"
+        verb_message "Running Puppet on $puppetcm"
         run_ssh_command $puppetcm "sudo /opt/puppetlabs/bin/puppet agent -t"
 
-        [ "$verbose" ] && verb_message "Running Puppet on $puppetmom"
+        verb_message "Running Puppet on $puppetmom"
         puppet agent -t
 
 
         # Same as the above, but standard Agents connect via the pt-master VIP.
 
-        [ "$verbose" ] && verb_message 'Configuring "PE Agent" group'
+        verb_message 'Configuring "PE Agent" group'
         eval curl -s $post $cert_chain $classifier_api/groups/$pa_group_id -d $pa_pcpb_data >/dev/null
 
-        [ "$verbose" ] && verb_message "Running Puppet on $puppetmom"
+        verb_message "Running Puppet on $puppetmom"
         puppet agent -t
     fi
 
@@ -489,9 +489,9 @@ EOT
 
     this_cm="${puppetcm//[^0-9]/}"
     if [ "$this_cm" -gt "1" ]; then
-        [ "$verbose" ] && verb_message "Running Puppet on all the Compile Masters"
+        verb_message "Running Puppet on all the Compile Masters"
         for n in $(seq 1 $this_cm); do
-            [ "$verbose" ] && verb_message "Running Puppet on ${puppetcm/[0-9]/$n}"
+            verb_message "Running Puppet on ${puppetcm/[0-9]/$n}"
             run_ssh_command ${puppetcm/[0-9]/$n} "sudo /opt/puppetlabs/bin/puppet agent -t"
         done
     fi
@@ -501,13 +501,13 @@ EOT
 # This function install the Puppet Agent on a standard node.
 
 install_cl() {
-    [ "$verbose" ] && verb_message "Installing Puppet Agent"
+    verb_message "Installing Puppet Agent"
     curl -sk $pe_agent_installer | sudo bash
 
-    [ "$verbose" ] && verb_message "Configuring $(uname -n) on Master"
+    verb_message "Configuring $(uname -n) on Master"
     run_ssh_command $puppetmom "sudo /vagrant/puppet-install.sh $debug $verbose $version_arg -p cl"
 
-    [ "$verbose" ] && verb_message "Running Puppet agent post-install"
+    verb_message "Running Puppet agent post-install"
     puppet agent -t
 }
 
@@ -517,7 +517,7 @@ install_cl() {
 post_install_cl() {
     puppetcl=$(check_for_cert)
 
-    [ "$verbose" ] && verb_message "Signing cert for $puppetcl"
+    verb_message "Signing cert for $puppetcl"
     puppet cert sign $puppetcl
 }
 
@@ -586,6 +586,6 @@ esac
 
 if [ -z "$post" ]; then
     [ "$role" == "mom" ] && cleanup
-    [ "$verbose" ] && verb_message "Done."
+    verb_message "Done."
 fi
 exit 0

@@ -35,7 +35,7 @@ usage() {
 # from vagrant's messages.
 
 verb_message() {
-    echo -e "\n\033[1;34m=== $1\033[0m"
+    [ "$verbose" ] && echo -e "\n\033[1;34m=== $1\033[0m"
 }
 
 
@@ -71,7 +71,7 @@ done
 # echoing commands to haproxy's unix socket using socat.  There'a also the
 # stats interface on puppettest-lb:9000 that will allow for state changes.
 
-[ "$verbose" ] && verb_message "Installing haproxy and socat"
+verb_message "Installing haproxy and socat"
 yum install -y haproxy socat
 
 
@@ -81,7 +81,7 @@ yum install -y haproxy socat
 # mounted.
 
 if [ ! -L /etc/haproxy/haproxy.cfg -a -r /vagrant/haproxy.cfg ]; then
-    [ "$verbose" ] && verb_message "Linking /etc/haproxy/haproxy.cfg to /vagrant/haproxy.cfg"
+    verb_message "Linking /etc/haproxy/haproxy.cfg to /vagrant/haproxy.cfg"
     rm /etc/haproxy/haproxy.cfg
     ln -s /vagrant/haproxy.cfg /etc/haproxy/haproxy.cfg
 
@@ -91,7 +91,7 @@ if [ ! -L /etc/haproxy/haproxy.cfg -a -r /vagrant/haproxy.cfg ]; then
     # bothered trying to figure out SELinux?  No.  No, I cannot.  So let's set
     # haproxy_t to be permissive.
 
-    [ "$verbose" ] && verb_message "Checking for SELinux in Enforcing mode"
+    verb_message "Checking for SELinux in Enforcing mode"
 
     if [ $(getenforce) == "Enforcing" ]; then
         verb_message "SELinux is enforcing"
@@ -99,11 +99,11 @@ if [ ! -L /etc/haproxy/haproxy.cfg -a -r /vagrant/haproxy.cfg ]; then
             verb_message "Can't find semanage, Installing policycoreutils-python"
             yum install -y policycoreutils-python
         fi
-        [ "$verbose" ] && verb_message "Setting process type haproxy_t to 'permissive'"
+        verb_message "Setting process type haproxy_t to 'permissive'"
         semanage permissive -a haproxy_t
     fi
 
-    [ "$verbose" ] && verb_message "Configuring haproxy.service to start after vagrant.mount"
+    verb_message "Configuring haproxy.service to start after vagrant.mount"
     cp -p /lib/systemd/system/haproxy.service /etc/systemd/system/haproxy.service
     sed -e 's/WantedBy=multi-user.target/WantedBy=vagrant.mount/' \
         -i /etc/systemd/system/haproxy.service
@@ -118,7 +118,7 @@ fi
 # no idea how to do that for rsyslog, only syslog, and it's not worth
 # the time investigating for now.
 
-[ "$verbose" ] && verb_message "Enable remote logging to rsyslog for haproxy"
+verb_message "Enable remote logging to rsyslog for haproxy"
 sed -e 's/#$ModLoad imudp/$ModLoad imudp/' \
     -e 's/#$UDPServerRun/$UDPServerRun/' \
     -e 's/#$ModLoad imtcp/$ModLoad imtcp/' \
@@ -128,12 +128,12 @@ sed -e 's/#$ModLoad imudp/$ModLoad imudp/' \
 echo "local2.*                       /var/log/haproxy.log" > /etc/rsyslog.d/haproxy.conf
 touch /var/log/haproxy.log
 
-[ "$verbose" ] && verb_message "Restarting rsyslog"
+verb_message "Restarting rsyslog"
 systemctl restart rsyslog
 
-[ "$verbose" ] && verb_message "Enabling and starting haproxy"
+verb_message "Enabling and starting haproxy"
 systemctl enable haproxy
 systemctl start haproxy
 
-[ "$verbose" ] && verb_message "Done."
+verb_message "Done."
 exit 0

@@ -48,7 +48,7 @@ usage() {
 # scripts.
 
 verb_message() {
-    echo -e "\n\033[1;34m=== $1\033[0m"
+    [ "$verbose" ] && echo -e "\n\033[1;34m=== $1\033[0m"
 }
 
 
@@ -120,7 +120,7 @@ fi
 # Masters obviously need to be up and running for this script to be useful.  At
 # the very least, the MoM should be up.
 
-[ "$verbose" ] && verb_message "Checking for running Masters."
+verb_message "Checking for running Masters."
 masters=($(vagrant status | grep 'running' | egrep -o '^pt(mom|cm\d)'))
 masters=${masters[*]}
 
@@ -130,7 +130,7 @@ if [ "$?" -ne "0" ]; then
     error_message "ptmom is not running."
     exit 1
 else
-    [ "$verbose" ] && verb_message "Found: $masters"
+    verb_message "Found: $masters"
 fi
 
 
@@ -139,7 +139,7 @@ fi
 
 if [ ! -z "$ssh_key" ]; then
     if [ -r "$ssh_key" ]; then
-        [ "$verbose" ] && verb_message "Making temporary copy of SSH key ${ssh_key##*/}"
+        verb_message "Making temporary copy of SSH key ${ssh_key##*/}"
         cp $ssh_key .
     else
         error_message "Cannot read $ssh_key"
@@ -150,7 +150,7 @@ fi
 
 # Create a tarball of the profile::puppet class and subclasses.
 
-[ "$verbose" ] && verb_message "Creating site tarball from control repo"
+verb_message "Creating site tarball from control repo"
 cwd=$PWD
 
 cd $control_repo
@@ -161,7 +161,7 @@ cd $cwd
 # Start building the bootstrap.sh script.  This script will be run on each of
 # the Masters.
 
-[ "$verbose" ] && verb_message "Generating 'bootstrap.sh' script"
+verb_message "Generating 'bootstrap.sh' script"
 
 cat > bootstrap.sh << EOF
 #!/bin/bash
@@ -417,7 +417,7 @@ EOF
 # Run the bootstrap.sh script on all the Masters.
 
 for master in $masters; do
-    [ "$verbose" ]  && verb_message "Running 'bootstrap.sh' on $master"
+    verb_message "Running 'bootstrap.sh' on $master"
     vagrant ssh $master -- sudo /vagrant/bootstrap.sh
 done
 
@@ -426,20 +426,20 @@ done
 
 if [ ! -z "$ssh_key" ]; then
     if [ -z "$debug" ]; then
-        [ "$verbose" ] && verb_message "Removing temporary copy of SSH key '${ssh_key##*/}'"
+        verb_message "Removing temporary copy of SSH key '${ssh_key##*/}'"
         rm ${ssh_key##*/}
     else
-        [ "$verbose" ] && verb_message "Keeping temporary copy of SSH key '${ssh_key##*/}'"
+        verb_message "Keeping temporary copy of SSH key '${ssh_key##*/}'"
     fi
 fi
 
 if [ -z "$keep_files" ]; then
-    [ "$verbose" ] && verb_message "Removing temporary files 'bootstrap.sh' and 'pe-site.tgz'"
+    verb_message "Removing temporary files 'bootstrap.sh' and 'pe-site.tgz'"
     rm -f bootstrap.sh pe-site.tgz
 else
-    [ "$verbose" ] && verb_message "Keeping temporary files 'bootstrap.sh' and 'pe-site.tgz'"
+    verb_message "Keeping temporary files 'bootstrap.sh' and 'pe-site.tgz'"
 fi
 
-[ "$verbose" ] && verb_message "Done."
+verb_message "Done."
 
 exit 0
