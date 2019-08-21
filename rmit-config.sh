@@ -271,13 +271,13 @@ for module in $modules; do
             org_repo=${remote##*github.com/}
             org=${org_repo%%/*}
             repo=${org_repo##*/}
-            echo "mkdir $module_name && cd $module_name" >> bootstrap.sh
+            echo "rm -rf $module_name && mkdir $module_name && cd $module_name" >> bootstrap.sh
             echo "echo 'Installing $module_name from GitHUb'" >> bootstrap.sh
             echo "curl -sL https://api.github.com/repos/${org}/${repo}/tarball/$ref | tar --strip=1 -xzf -" >> bootstrap.sh
             echo "cd .." >> bootstrap.sh
         else
             if [ ! -z "$ssh_key" ]; then
-                echo "mkdir $module_name && cd $module_name" >> bootstrap.sh
+                echo "rm -rf $module_name && mkdir $module_name && cd $module_name" >> bootstrap.sh
                 echo "echo 'Installing git-based module $module_name'" >> bootstrap.sh
                 echo "git archive --format=tar --remote=$remote $ref | tar -xf -" >> bootstrap.sh
                 echo "cd .." >> bootstrap.sh
