@@ -443,7 +443,7 @@ EOT
         # pt-master name.
 
         verb_message 'Configuring "PE Master" group'
-        eval curl -s $post $cert_chain $classifier_api/groups/$pm_group_id -d $pm_cmpa_data >/dev/null
+        eval curl -s $post $cert_chain $classifier_api/groups/$pm_group_id -d $pm_cmpa_data
 
         # Run the agent on the Compile Master and the MoM to apply the new setting.
 
@@ -462,7 +462,7 @@ EOT
         # being in the installation docs.  I'm not sure why.
 
         verb_message 'Configuring "PE Infrastructure Agent" group'
-        eval curl -s $post $cert_chain $classifier_api/groups/$pia_group_id -d $pia_pcpb_data >/dev/null
+        eval curl -s $post $cert_chain $classifier_api/groups/$pia_group_id -d $pia_pcpb_data
 
         verb_message "Running Puppet on $puppetcm"
         run_ssh_command $puppetcm "sudo /opt/puppetlabs/bin/puppet agent -t"
@@ -474,7 +474,7 @@ EOT
         # Same as the above, but standard Agents connect via the pt-master VIP.
 
         verb_message 'Configuring "PE Agent" group'
-        eval curl -s $post $cert_chain $classifier_api/groups/$pa_group_id -d $pa_pcpb_data >/dev/null
+        eval curl -s $post $cert_chain $classifier_api/groups/$pa_group_id -d $pa_pcpb_data
 
         verb_message "Running Puppet on $puppetmom"
         puppet agent -t
