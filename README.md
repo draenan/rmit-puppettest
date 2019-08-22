@@ -82,3 +82,29 @@ credentials `admin/password`.
 All of this assume you haven't changed anything in the various config files, of
 course.
 
+
+### RMIT config
+
+While this environment is modelled on RMIT's, it is not really useful for
+testing how RMIT's code behaves for situations such as Agent upgrades.  To
+assist with this, the `rmit-config.sh` post-install script was added in order
+to make the installation look and behave as closely as possible to the current
+RMIT PE environment.
+
+In order to use it you need a local copy of `puppet-controlrepo` and possibly
+access to the SSH key used for access to the relevant Git repo (if you intend
+to use the modules in the `Puppetfile` that are installed via SSH.)
+
+Run the script after all the Masters are up.
+
+```
+Usage: rmit-config.sh [-h] [-d] [-k] [-v] [-K ssh_key_file] [-r control_repo_location]
+
+Optional parameters:
+    -h                Show this help message and exit
+    -d                Debug (set -x), implies -k
+    -k                Keep bootstrap.sh, pe-site.tgz, and the copied SSH key
+    -v                Be verbose
+    -K                Path to SSH key (for Git repo access)
+    -r                Path to clone of Control Repo
+```
