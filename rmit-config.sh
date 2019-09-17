@@ -194,6 +194,14 @@ cd /etc/puppetlabs/code/environments/production
 tar xzvf /vagrant/pe-site.tgz
 
 
+# Fix the source location for pc_repo in profile::puppet::agent
+
+verb_message "Correcting pc_repo URI in profile::puppet::agent"
+
+sed -e 's/pe-master.its.rmit.edu.au:8140/pt-master.its.rmit.edu.au:8140/' \\
+    -i site/profile/manifests/puppet/agent.pp
+
+
 # Installing git if required.  May be needed for some modules in the
 # Puppetfile.
 
