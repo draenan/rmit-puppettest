@@ -17,7 +17,7 @@
 # have downloaded correctly there shouldn't be any errors while
 # installing.
 #
-# By default this script installs PE 2018.1.2.  This can be changed
+# By default this script installs PE 2018.1.9.  This can be changed
 # via use of the "-V" argument.
 #
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:/opt/puppetlabs/bin
@@ -223,7 +223,7 @@ install_mom() {
 
 
     # We are assuming that the MoM is running EL7 (RHEL 7, CentOS 7, OEL 7,
-    # etc).  The version is 2018.1.2, unless overridden with the "-V" argument.
+    # etc).  The version is 2018.1.9, unless overridden with the "-V" argument.
     # We also require a customised pe.conf file in the "/vagrant" directory. In
     # theory we could have just modified the default pe.conf when the tarball
     # is extracted, but putting the config in "/vagrant" gives people a chance
@@ -538,7 +538,7 @@ while getopts :hdvV:p opt; do
             echo "    -h                Show this help message and exit"
             echo "    -d                Debug (set -x)"
             echo "    -v                Be verbose"
-            echo "    -V                PE version (2018.1.2 if not defined)"
+            echo "    -V                PE version (2018.1.9 if not defined)"
             echo "    -p                Run post-install tasks"
             exit
             ;;
@@ -572,7 +572,7 @@ shift $((OPTIND - 1))
 [ "$debug" ] && set -x
 
 role=$1
-version=${version:="2018.1.2"}
+version=${version:="2018.1.9"}
 
 case $role in
     "mom"|"cm"|"cl")

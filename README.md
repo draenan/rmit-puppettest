@@ -29,10 +29,10 @@ ptcm2: Compile Master #2
 
 ptcl:  Standard node with Puppet Agent installed
 ```
-By default PE 2018.1.2 is installed, as that is the current version in use at
+By default PE 2018.1.9 is installed, as that is the current version in use at
 RMIT, however this can be changed by modifying the `Vagrantfile` and ensuring
 that references to "`puppet-install.sh`" have the "`-V`" argument added to specify
-the version.  For example, to install 2018.1.8, add "`-V 2018.1.8`" as the
+the version.  For example, to install 2018.1.11, add "`-V 2018.1.11`" as the
 argument.
 
 **NOTE:** This build isn't actually all that useful for testing Puppet code as
