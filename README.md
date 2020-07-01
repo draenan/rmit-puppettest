@@ -53,7 +53,7 @@ this is not what you want for a standalone Master.
 
 If you are using the default `rmit-rhel7` box (assuming you are located on
 campus) you can obtain the latest `rmit-rhel-server-7` version of the box from
-the [Satellite](http://satellite.its.rmit.edu.au/boxes/) server.  Get the link
+the [Unixfiles](http://unixfiles.int.its.rmit.edu.au/boxes/) server.  Get the link
 and install it via:
 
 ```
